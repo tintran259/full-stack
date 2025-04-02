@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { hashPassword } from '@/helper/utils';
 import aqp from 'api-query-params';
 
@@ -15,6 +15,15 @@ export class UsersService {
     const user = await this.userModel.exists({ email });
     return user;
   }
+
+  async findByEmail(email: string) {
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return user;
+  }
+
   async create(createUserDto: CreateUserDto) {
     try {
       const { password, email } = createUserDto;
@@ -65,15 +74,39 @@ export class UsersService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    if (mongoose.isValidObjectId(id) === false) {
+      throw new BadRequestException('Invalid user id');
+    }
+    const userDetail = await this.userModel.findById(id).select('-password');
+
+    if (!userDetail) {
+      throw new BadRequestException('User not found');
+    }
+    return userDetail;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(updateUserDto: UpdateUserDto) {
+    const user = await this.userModel.updateOne(
+      {
+        _id: updateUserDto._id,
+      },
+      updateUserDto,
+    );
+
+    return user;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    if (mongoose.isValidObjectId(id) === false) {
+      throw new BadRequestException('Invalid user id');
+    }
+    const isUserExist = await this.userModel.exists({ _id: id });
+
+    if (!isUserExist) {
+      throw new BadRequestException('User not found');
+    }
+    const results = await this.userModel.deleteOne({ _id: id });
+    return results;
   }
 }
