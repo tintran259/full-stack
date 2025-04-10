@@ -47,6 +47,13 @@ import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
         defaults: {
           from: '"No Reply" <noreply@localhost>',
         },
+        template: {
+          dir: process.cwd() + '/src/mail/templates',
+          adapter: new HandlebarsAdapter(), // PugAdapter or HandlebarsAdapter
+          options: {
+            strict: true,
+          },
+        },
         preview: true,
         // uri: configService.get<string>('MAIL_URI'),
       }),

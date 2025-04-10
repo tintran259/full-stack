@@ -57,21 +57,32 @@ export class AuthService {
 
       const password = await hashPassword(registerBody.password);
 
+      const codeId = uuid();
+
       const newUser = await this.usersService.create({
         ...registerBody,
         password,
-        codeId: uuid(),
+        codeId,
         codeExpired: dayjs().add(1, 'day').toDate(),
         isActive: false,
       });
 
-      console.log('newUser', newUser);
+      this.mailerService.sendMail({
+        to: registerBody.email,
+        from: 'test@localhost',
+        subject: 'Active your account',
+        template: 'register.hbs',
+        context: {
+          name: registerBody.name || registerBody.email,
+          activeCodeId: codeId,
+        },
+      });
 
       return {
-        // access_token: await this.generateToken.signAsync({
-        //   email: newUser.,
-        //   sub: newUser._id,
-        // }),
+        access_token: await this.generateToken.signAsync({
+          email: registerBody.email,
+          sub: newUser._id,
+        }),
         message: 'create user successfully',
       };
     } catch (error) {

@@ -38,16 +38,4 @@ export class AuthController {
   register(@Body() registerBody: CreateAuthDto) {
     return this.authService.signUp(registerBody);
   }
-
-  @Public()
-  @Get('mail')
-  testSendMail() {
-    return this.mailService.sendMail({
-      to: 'tintran2591999@gmail.com',
-      from: 'test@localhost',
-      subject: 'Test Mail',
-      text: 'This is a test mail',
-      html: '<b>This is a test mail</b>',
-    });
-  }
 }
