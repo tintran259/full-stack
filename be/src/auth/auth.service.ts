@@ -5,12 +5,14 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { v4 as uuid } from 'uuid';
 import dayjs from 'dayjs';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private generateToken: JwtService,
+    private mailerService: MailerService,
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
@@ -78,4 +80,6 @@ export class AuthService {
       });
     }
   }
+
+  async sendEmailVerification(email: string): Promise<any> {}
 }

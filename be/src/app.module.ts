@@ -15,10 +15,43 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 
 @Module({
   imports: [
     UsersModule,
+    LikesModule,
+    MenuItemOptionsModule,
+    MenuItemsModule,
+    MenusModule,
+    OrderDetailModule,
+    OrdersModule,
+    RestaurantsModule,
+    ReviewsModule,
+    AuthModule,
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('LOCAL_HOST'),
+          port: 465,
+          ignoreTLS: true,
+          secure: true,
+          auth: {
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
+          },
+        },
+        defaults: {
+          from: '"No Reply" <noreply@localhost>',
+        },
+        preview: true,
+        // uri: configService.get<string>('MAIL_URI'),
+      }),
+      inject: [ConfigService],
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -29,15 +62,6 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
       }),
       inject: [ConfigService],
     }),
-    LikesModule,
-    MenuItemOptionsModule,
-    MenuItemsModule,
-    MenusModule,
-    OrderDetailModule,
-    OrdersModule,
-    RestaurantsModule,
-    ReviewsModule,
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [
