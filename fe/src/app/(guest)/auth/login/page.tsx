@@ -2,8 +2,9 @@
 import React from "react";
 import { Button, Checkbox, Form, Input } from "antd";
 import FormCustom from "@/components/Auth/Form";
-import { useRouter } from "next/navigation";
 import NAME_ROUTE from "@/routes";
+import { useRouter } from "next/navigation";
+import { authenticate } from "@/utils/actions";
 
 type FieldType = {
   username?: string;
@@ -14,11 +15,13 @@ type FieldType = {
 const LoginPage: React.FC = () => {
   const router = useRouter();
   const { REGISTER_PAGE } = NAME_ROUTE;
-  const onFinish = (values: FieldType) => {
-    // login
-    if (values.username && values.password) {
-      // login success
-      router.push("/dashboard");
+  const onFinish = async (values: FieldType) => {
+    try {
+      const { username, password } = values;
+      const res = await authenticate(username || "", password || "");
+      console.log("res:", res);
+    } catch (error) {
+      console.log("error:", error);
     }
   };
   return (

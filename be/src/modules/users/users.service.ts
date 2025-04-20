@@ -26,16 +26,13 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const { password, email } = createUserDto;
+      const { email } = createUserDto;
       const checkEmail = await this.isEmailExist(email);
       if (checkEmail) {
         throw new BadRequestException('Email already exists');
       } else {
-        const passwordHash = await hashPassword(password);
-
         const body = {
           ...createUserDto,
-          password: passwordHash,
         };
 
         const user = await this.userModel.create(body);

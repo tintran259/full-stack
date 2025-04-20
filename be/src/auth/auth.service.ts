@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
 import { comparePassword, hashPassword } from '@/helper/utils';
 import { JwtService } from '@nestjs/jwt';
@@ -20,29 +25,61 @@ export class AuthService {
       const user = await this.usersService.findByEmail(username);
       const isValidPassword = await comparePassword(pass, user.password);
 
-      if (!isValidPassword || !user) return null;
+      if (!isValidPassword || !user) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Invalid username or password',
+            isActive: false,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (!user.isActive) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.FORBIDDEN,
+            message: 'Account is not activated',
+            isActive: false,
+          },
+          HttpStatus.FORBIDDEN,
+        );
+      }
 
       return user;
     } catch (error) {
-      console.log('error:', error);
-
-      throw new UnauthorizedException({
-        message: 'Invalid username or password',
-      });
+      throw new HttpException(
+        {
+          ...error.response,
+        },
+        error?.status,
+      );
     }
   }
 
   async signIn(user: any): Promise<any> {
     try {
+      const username = user.username;
+      const password = user.password;
       const payload = { email: user.username, sub: user._id };
+      const dataUser = await this.validateUser(username, password);
 
       return {
+        userDetail: {
+          email: dataUser.email,
+          _id: dataUser._id,
+          name: dataUser.name,
+        },
         access_token: await this.generateToken.signAsync(payload),
       };
     } catch (error) {
-      throw new UnauthorizedException({
-        message: 'Invalid username or password',
-      });
+      throw new HttpException(
+        {
+          ...error.response,
+        },
+        error?.status,
+      );
     }
   }
 
